@@ -35,7 +35,7 @@ def faraday(options = {})
 
   Faraday.new(options) do |faraday|
     faraday.request :aws_signers_v4,
-      credentials: Aws::Credentials.new('akid', 'secret'),
+      credentials: AWS::Core::CredentialProviders::StaticProvider.new(access_key_id: 'akid', secret_access_key: 'secret'),
       service_name: 'apigateway',
       region: 'us-east-1'
 
