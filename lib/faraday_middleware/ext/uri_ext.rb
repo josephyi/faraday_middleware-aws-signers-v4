@@ -14,12 +14,18 @@ module URI
             # bug?
             #encoded_key
           else
-            encoded_key + '=' + Seahorse::Util.uri_escape(v)
+            encoded_key + '=' + uri_escape(v)
           end
         }.join('&')
       else
-        encoded_key + '=' + Seahorse::Util.uri_escape(value)
+        encoded_key + '=' + uri_escape(value)
       end
     }.join('&')
   end
+
+  # borrowed from Seahorse::Util.uri_escape
+  def self.uri_escape(str)
+    CGI.escape(str.encode('UTF-8')).gsub('+', '%20').gsub('%7E', '~')
+  end
+
 end
