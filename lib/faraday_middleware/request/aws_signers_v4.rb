@@ -35,7 +35,11 @@ class FaradayMiddleware::AwsSignersV4 < Faraday::Middleware
     end
 
     def path
-      @env.url.path
+      if @env.url && @env.url.path
+        @env.url.path
+      else
+        ''
+      end
     end
 
     def querystring
