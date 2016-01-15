@@ -30,6 +30,28 @@ class FaradayMiddleware::AwsSignersV4 < Faraday::Middleware
       @env.method.to_s.upcase
     end
 
+    def host
+      @env.url.host
+    end
+
+    def path
+      @env.url.path
+    end
+
+    def querystring
+      if @env.url && @env.url.query
+        query = @env.url.query
+        params = URI.decode_www_form(query)
+
+        if params.any? {|k, v| v =~ / / }
+          query = URI.seahorse_encode_www_form(params)
+        end
+        query
+      else
+        ''
+      end
+    end
+
     private
 
     def re_escape_query!(url)
@@ -53,7 +75,7 @@ class FaradayMiddleware::AwsSignersV4 < Faraday::Middleware
   def call(env)
     normalize_for_net_http!(env)
     req = Request.new(env)
-    Aws::Signers::V4.new(@credentials, @service_name, @region).sign(req)
+    sign_request(req, @credentials, @service_name, @region)
     @app.call(env)
   end
 
@@ -72,4 +94,13 @@ class FaradayMiddleware::AwsSignersV4 < Faraday::Middleware
 
     env.request_headers['Accept'] ||= '*/*'
   end
+
+  def sign_request(req, credentials, service_name, region)
+    if defined?(Aws)
+      Aws::Signers::V4.new(credentials, service_name, region).sign(req)
+    else
+      AWS::Core::Signers::Version4.new(credentials, service_name, region).sign_request(req)
+    end
+  end
+
 end
